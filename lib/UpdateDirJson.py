@@ -6,27 +6,58 @@ import os
 import json
 
 def file_tree(path='.'):
-    dirs = os.listdir(path)
+    dirs = sorted(os.listdir(path), reverse=True)   # リスト取得 & ソート
     buf_child = []
     out_json = {
         'path': path,
         'name': '',
+        'attribute': '0',
         'child': buf_child,
     }
     for dir in dirs:
         dir_path = os.path.join(path, dir)
         if os.path.isdir(dir_path):
-            # dirの場合
-            child = file_tree(dir_path)
-            child['name'] = dir
-            buf_child.append(child)
+            if (
+                dir != "temp" and
+                dir != "Temp" and
+                dir != "TEMP" and
+                dir != "tmp" and
+                dir != "Tmp" and
+                dir != "TMP"
+            ) :
+#                print("\"" + dir + "\"")
+                # case dir
+                child = file_tree(dir_path)
+                child['name'] = dir
+                child['attribute'] = 0
+                buf_child.append(child)
+            else :
+                print("除外\"" + dir + "\"")
         else:
-            # dir以外
-            buf_child.append({
-                'path': dir_path,
-                'name': dir,
-                'child': [],
-            })
+            # case File
+            # 拡張子選別
+            nameFile, extFile   = os.path.splitext(dir_path)
+#            print(extFile)
+            if (
+                extFile == ".jpeg" or
+                extFile == ".jpg" or
+                extFile == ".png" or
+                extFile == ".gif" or
+                extFile == ".bmap" or
+                extFile == ".JPEG" or
+                extFile == ".JPG" or
+                extFile == ".PNG" or
+                extFile == ".GIF" or
+                extFile == ".BMAP"
+            ) :
+                buf_child.append({
+                    'path': dir_path,
+                    'name': dir,
+                    'attribute': 1,
+                    'child': [],
+                })
+            else :
+                print("除外\"" + dir_path + "\"")
     return out_json
 
 def UpdateDirJson (path_dir, path_json):
@@ -42,6 +73,7 @@ def UpdateDirJson (path_dir, path_json):
 
     # JSONファイル読み込み
     if (os.path.isfile(path_json)) :
+        print("ある" + path_json)
         with open(path_json, mode='r') as infile :
             json_old    = json.load(infile)
 
@@ -52,6 +84,7 @@ def UpdateDirJson (path_dir, path_json):
     else :
         flag_update = True
 
+#    print(flag_update)
     if (flag_update) :
         # JSON更新
         with open(path_json, mode='w') as outfile :
@@ -76,4 +109,4 @@ if __name__ == "__main__":
     path_json   = os.getcwd()+"/"+out_file
 
     UpdateDirJson(path_dir, path_json)
-
+    
